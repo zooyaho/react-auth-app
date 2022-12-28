@@ -8,6 +8,7 @@ const AuthForm = () => {
   const emailInputRef = useRef();
   const pswInputRef = useRef();
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
@@ -18,6 +19,8 @@ const AuthForm = () => {
 
     const enteredEmail = emailInputRef.current.value;
     const enteredPsw = pswInputRef.current.value;
+
+    setIsLoading(true);
 
     if (isLogin) {
       // 로그인 모드일 때
@@ -34,18 +37,22 @@ const AuthForm = () => {
           }),
           headers: { "Content-Type": "application/json" },
         }
-      )
-        .then((res) => {
-          if (res.ok) {
-            // ...
-          }
-        })
-        .catch((res) => {
+      ).then((res) => {
+        if (res.ok) {
+          // ...
+        } else {
+          console.log("회원가입 실패!!");
           return res.json().then((data) => {
-            // 오류 모달 창
-            console.log(data);
+            // 회원가입 실패 사용자 피드백 추가
+            let errorMsg = "Authentication failed!";
+            if (data && data.error && data.error.message) {
+              errorMsg = data.error.message;
+            }
+            alert(errorMsg);
           });
-        });
+        }
+        setIsLoading(false);
+      });
     }
   };
 
@@ -62,7 +69,11 @@ const AuthForm = () => {
           <input ref={pswInputRef} type="password" id="password" required />
         </div>
         <div className={classes.actions}>
-          <button>{isLogin ? "Login" : "Create Account"}</button>
+          {isLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <button>{isLogin ? "Login" : "Create Account"}</button>
+          )}
           <button
             type="button"
             className={classes.toggle}
