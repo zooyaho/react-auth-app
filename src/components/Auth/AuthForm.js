@@ -21,25 +21,28 @@ const AuthForm = () => {
     const enteredPsw = pswInputRef.current.value;
 
     setIsLoading(true);
-
+    let url;
     if (isLogin) {
       // 로그인 모드일 때
+      url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${WEB_API_KEY}`;
     } else {
       // 회원가입 모드일 때
-      fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${WEB_API_KEY}`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email: enteredEmail,
-            password: enteredPsw,
-            returnSecureToken: true,
-          }),
-          headers: { "Content-Type": "application/json" },
-        }
-      ).then((res) => {
+      url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${WEB_API_KEY}`;
+    }
+
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        email: enteredEmail,
+        password: enteredPsw,
+        returnSecureToken: true,
+      }),
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((res) => {
+        setIsLoading(false);
         if (res.ok) {
-          // ...
+          return res.json();
         } else {
           console.log("회원가입 실패!!");
           return res.json().then((data) => {
@@ -48,12 +51,16 @@ const AuthForm = () => {
             if (data && data.error && data.error.message) {
               errorMsg = data.error.message;
             }
-            alert(errorMsg);
+            throw new Error(errorMsg);
           });
         }
-        setIsLoading(false);
+      })
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((err) => {
+        alert(err.message);
       });
-    }
   };
 
   return (
